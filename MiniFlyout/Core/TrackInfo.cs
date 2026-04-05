@@ -5,5 +5,9 @@ namespace MiniFlyout.Core
     {
         public string Title { get; set; } = "Unknown";
         public string Artist { get; set; } = "Unknown";
+        
+        // New properties for dynamic UI
+        public bool IsPlaying { get; set; } = false;
+        public byte[]? ThumbnailData { get; set; }
     }
 }

@@ -13,12 +13,18 @@ namespace MiniFlyout.UI
     {
         private readonly IMediaService _mediaService;
         private Point _dragStart;
-        private ToolTip _trackInfoToolTip = null!;
-        
-        // Explicitly declared as WinForms Timer to avoid System.Threading ambiguity
         private System.Windows.Forms.Timer _topMostEnforcer = null!;
+        private System.Windows.Forms.Timer _uiUpdater = null!;
+        
+        // UI Components
+        private StyledButton _playBtn = null!;
+        private Label _titleLabel = null!;
+        private Label _artistLabel = null!;
+        private PictureBox _thumbnailBox = null!;
+        
+        // State tracking
+        private string _lastTitle = "";
 
-        // Constructor Injection
         public MainForm(IMediaService mediaService)
         {
             _mediaService = mediaService ?? throw new ArgumentNullException(nameof(mediaService));
@@ -26,77 +32,114 @@ namespace MiniFlyout.UI
             InitUI();
             EnableDrag();
             EnableTopMostEnforcer();
-            EnableHoverInfo();
+            EnableDynamicUpdater();
         }
 
         private void InitUI()
         {
-            Width = 130;
-            Height = 40;
+            // Wider, horizontal layout
+            Width = 340; 
+            Height = 64;
             FormBorderStyle = FormBorderStyle.None;
             TopMost = true;
             ShowInTaskbar = false;
-            
-            // Background must be dark for Acrylic blur to look correct
-            BackColor = Color.FromArgb(10, 10, 10); 
+            BackColor = Color.FromArgb(15, 15, 15); 
 
-            // Rounded corners
-            Region = Region.FromHrgn(NativeMethods.CreateRoundRectRgn(0, 0, Width, Height, 20, 20));
+            // Smooth rounded corners
+            Region = Region.FromHrgn(NativeMethods.CreateRoundRectRgn(0, 0, Width, Height, 18, 18));
 
-            // Position on the bottom left, directly over the taskbar
             var screen = Screen.PrimaryScreen!;
             var bounds = screen.Bounds;
             var workingArea = screen.WorkingArea;
-            
-            // Calculate taskbar height (Full Monitor Height - Usable Desktop Height)
             int taskbarHeight = bounds.Height - workingArea.Height;
-            
-            // Center it vertically inside the taskbar, fallback to bottom if taskbar is hidden
             int yPos = taskbarHeight > 0 
                 ? workingArea.Height + (taskbarHeight - Height) / 2 
                 : bounds.Height - Height - 5;
 
             StartPosition = FormStartPosition.Manual;
-            // Positioned strictly on the leftmost edge of the screen
-            Location = new Point(0, yPos);
+            Location = new Point(0, yPos); // Leftmost edge
 
-            _trackInfoToolTip = new ToolTip
-            {
-                BackColor = Color.FromArgb(20, 20, 20),
-                ForeColor = Color.White,
-                UseAnimation = true,
-                UseFading = true
-            };
-
-            // Buttons Container - Switched to TableLayoutPanel for perfect 1/3 symmetry
-            var buttonPanel = new TableLayoutPanel
+            // 1. Master Grid Layout
+            var mainLayout = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
                 BackColor = Color.Transparent,
                 RowCount = 1,
                 ColumnCount = 3,
-                Padding = new Padding(0)
+                Padding = new Padding(5)
             };
-            buttonPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33f));
-            buttonPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33f));
-            buttonPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33f));
+            mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 54f)); // Thumbnail Area
+            mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f)); // Text Area
+            mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110f)); // Buttons Area
 
-            // Initialize controls with Segoe Fluent Icons: Prev (\uE892), Play/Pause (\uE768), Next (\uE893)
-            // Anchor = None ensures they sit dead-center inside their grid columns
-            var prev = new StyledButton("\uE892") { Anchor = AnchorStyles.None, Margin = new Padding(0) };
-            var play = new StyledButton("\uE768") { Anchor = AnchorStyles.None, Margin = new Padding(0) };
-            var next = new StyledButton("\uE893") { Anchor = AnchorStyles.None, Margin = new Padding(0) };
+            // 2. Thumbnail PictureBox
+            _thumbnailBox = new PictureBox
+            {
+                Dock = DockStyle.Fill,
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = Color.FromArgb(25, 25, 25), // Slight highlight behind image
+                Margin = new Padding(0, 0, 5, 0)
+            };
 
-            // Wire up the abstract media service
+            // 3. Text Container
+            var textLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 2,
+                ColumnCount = 1,
+                Margin = new Padding(0)
+            };
+            textLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 55f));
+            textLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 45f));
+
+            _titleLabel = new Label
+            {
+                Text = "No Media",
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.BottomLeft,
+                AutoEllipsis = true
+            };
+            
+            _artistLabel = new Label
+            {
+                Text = "Waiting for playback...",
+                ForeColor = Color.FromArgb(180, 255, 255, 255), // Light Gray
+                Font = new Font("Segoe UI", 8.5f, FontStyle.Regular),
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.TopLeft,
+                AutoEllipsis = true
+            };
+            textLayout.Controls.Add(_titleLabel, 0, 0);
+            textLayout.Controls.Add(_artistLabel, 0, 1);
+
+            // 4. Buttons Container
+            var buttonLayout = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                Margin = new Padding(0)
+            };
+
+            var prev = new StyledButton("\uE892");
+            _playBtn = new StyledButton("\uE768"); // Default to Play
+            var next = new StyledButton("\uE893");
+
             prev.Click += (s, e) => _mediaService.Previous();
-            play.Click += (s, e) => _mediaService.PlayPause();
+            _playBtn.Click += (s, e) => _mediaService.PlayPause();
             next.Click += (s, e) => _mediaService.Next();
 
-            buttonPanel.Controls.Add(prev, 0, 0);
-            buttonPanel.Controls.Add(play, 1, 0);
-            buttonPanel.Controls.Add(next, 2, 0);
+            buttonLayout.Controls.Add(prev);
+            buttonLayout.Controls.Add(_playBtn);
+            buttonLayout.Controls.Add(next);
 
-            Controls.Add(buttonPanel);
+            mainLayout.Controls.Add(_thumbnailBox, 0, 0);
+            mainLayout.Controls.Add(textLayout, 1, 0);
+            mainLayout.Controls.Add(buttonLayout, 2, 0);
+
+            Controls.Add(mainLayout);
         }
 
         protected override void OnHandleCreated(EventArgs e)
@@ -107,11 +150,10 @@ namespace MiniFlyout.UI
 
         private void ApplyAcrylicBlur()
         {
-            // Apply Windows 11 Acrylic styling
             var accent = new NativeMethods.AccentPolicy
             {
                 AccentState = NativeMethods.ACCENT_ENABLE_ACRYLICBLURBEHIND,
-                GradientColor = unchecked((int)0x99000000) // Hex ARGB (Dark gray with 60% opacity)
+                GradientColor = unchecked((int)0x99000000)
             };
 
             int accentStructSize = Marshal.SizeOf(accent);
@@ -131,14 +173,14 @@ namespace MiniFlyout.UI
 
         private void EnableDrag()
         {
+            // Allow dragging from any empty space
             MouseDown += HandleMouseDown;
             MouseMove += HandleMouseMove;
         }
 
         private void HandleMouseDown(object? sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
-                _dragStart = e.Location;
+            if (e.Button == MouseButtons.Left) _dragStart = e.Location;
         }
 
         private void HandleMouseMove(object? sender, MouseEventArgs e)
@@ -154,7 +196,6 @@ namespace MiniFlyout.UI
 
         private void EnableTopMostEnforcer()
         {
-            // Taskbar aggressively fights for Z-order; this timer maintains widget visibility
             _topMostEnforcer = new System.Windows.Forms.Timer { Interval = 2000 };
             _topMostEnforcer.Tick += (s, e) => 
             {
@@ -164,33 +205,53 @@ namespace MiniFlyout.UI
             _topMostEnforcer.Start();
         }
 
-        private void EnableHoverInfo()
+        private void EnableDynamicUpdater()
         {
-            MouseEnter += async (s, e) => await FetchTrackInfoAsync();
-            // Trigger tooltip updates seamlessly across the buttons
-            foreach (Control ctrl in Controls)
-            {
-                ctrl.MouseEnter += async (s, e) => await FetchTrackInfoAsync();
-                foreach (Control child in ctrl.Controls)
-                {
-                    child.MouseEnter += async (s, e) => await FetchTrackInfoAsync();
-                }
-            }
+            // Updates UI every 1 second continuously 
+            _uiUpdater = new System.Windows.Forms.Timer { Interval = 1000 };
+            _uiUpdater.Tick += async (s, e) => await UpdateUIStateAsync();
+            _uiUpdater.Start();
+            
+            // Initial fetch
+            _ = UpdateUIStateAsync();
         }
 
-        private async Task FetchTrackInfoAsync()
+        private async Task UpdateUIStateAsync()
         {
             var track = await _mediaService.GetCurrentTrackAsync();
-            string tooltipText = track != null ? $"{track.Artist} - {track.Title}" : "No media playing";
-            
-            _trackInfoToolTip.SetToolTip(this, tooltipText);
-            foreach (Control ctrl in Controls)
+            if (track != null)
             {
-                _trackInfoToolTip.SetToolTip(ctrl, tooltipText);
-                foreach (Control child in ctrl.Controls)
+                // Update Play/Pause Icon dynamically
+                string currentIcon = track.IsPlaying ? "\uE769" : "\uE768";
+                if (_playBtn.Text != currentIcon) _playBtn.Text = currentIcon;
+
+                // Update text and image ONLY if the song changes to save memory
+                if (_lastTitle != track.Title)
                 {
-                    _trackInfoToolTip.SetToolTip(child, tooltipText);
+                    _lastTitle = track.Title;
+                    _titleLabel.Text = track.Title;
+                    _artistLabel.Text = track.Artist;
+
+                    if (track.ThumbnailData != null)
+                    {
+                        var oldImage = _thumbnailBox.Image;
+                        var ms = new System.IO.MemoryStream(track.ThumbnailData);
+                        _thumbnailBox.Image = Image.FromStream(ms);
+                        oldImage?.Dispose();
+                    }
+                    else
+                    {
+                        _thumbnailBox.Image = null;
+                    }
                 }
+            }
+            else
+            {
+                _playBtn.Text = "\uE768";
+                _titleLabel.Text = "No Media";
+                _artistLabel.Text = "";
+                _thumbnailBox.Image = null;
+                _lastTitle = "";
             }
         }
     }

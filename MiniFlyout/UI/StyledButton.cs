@@ -9,21 +9,31 @@ namespace MiniFlyout.UI
     {
         public StyledButton(string fluentIcon)
         {
-            // Use Windows 11 native icons
             Font = new Font("Segoe Fluent Icons", 14f, FontStyle.Regular);
             Text = fluentIcon;
             
-            Size = new Size(35, 35);
+            Size = new Size(32, 32);
             FlatStyle = FlatStyle.Flat;
             FlatAppearance.BorderSize = 0;
             BackColor = Color.Transparent;
             ForeColor = Color.White;
             Cursor = Cursors.Hand;
-            Margin = new Padding(2);
+            
+            // Centered vertically relative to the new layout
+            Margin = new Padding(2, 11, 2, 0); 
 
-            // Subtle hover effect mimicking native behavior
-            MouseEnter += (s, e) => BackColor = Color.FromArgb(40, 255, 255, 255);
-            MouseLeave += (s, e) => BackColor = Color.Transparent;
+            // Crisp Native Hover Effect (Solid White Background, Black Text)
+            MouseEnter += (s, e) => 
+            {
+                BackColor = Color.White;
+                ForeColor = Color.Black;
+            };
+            
+            MouseLeave += (s, e) => 
+            {
+                BackColor = Color.Transparent;
+                ForeColor = Color.White;
+            };
         }
     }
 }
