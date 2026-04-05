@@ -1,9 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<!-- File: MiniFlyout.csproj -->
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- Updated to target .NET 10 and the Windows SDK -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
 </Project>

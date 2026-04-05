@@ -1,22 +1,29 @@
+// File: UI/StyledButton.cs
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace UI
+namespace MiniFlyout.UI
 {
     public class StyledButton : Button
     {
-        public StyledButton(string text)
+        public StyledButton(string fluentIcon)
         {
-            Text = text;
-            Width = 60;
-            Height = 40;
+            // Use Windows 11 native icons
+            Font = new Font("Segoe Fluent Icons", 14f, FontStyle.Regular);
+            Text = fluentIcon;
+            
+            Size = new Size(35, 35);
             FlatStyle = FlatStyle.Flat;
-            ForeColor = Color.White;
-            BackColor = Color.FromArgb(30, 30, 30);
             FlatAppearance.BorderSize = 0;
+            BackColor = Color.Transparent;
+            ForeColor = Color.White;
+            Cursor = Cursors.Hand;
+            Margin = new Padding(2);
 
-            MouseEnter += (s, e) => BackColor = Color.FromArgb(50, 50, 50);
-            MouseLeave += (s, e) => BackColor = Color.FromArgb(30, 30, 30);
+            // Subtle hover effect mimicking native behavior
+            MouseEnter += (s, e) => BackColor = Color.FromArgb(40, 255, 255, 255);
+            MouseLeave += (s, e) => BackColor = Color.Transparent;
         }
     }
 }
