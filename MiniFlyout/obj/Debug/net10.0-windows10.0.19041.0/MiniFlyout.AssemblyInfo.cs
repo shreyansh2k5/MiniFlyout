@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MiniFlyout")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d1dbcb07d21e58be0674db68e4c3c5174aba954b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+733d2508646cd892ceb4a4fb457ffbf371f4908e")]
 [assembly: System.Reflection.AssemblyProductAttribute("MiniFlyout")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MiniFlyout")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
