@@ -46,8 +46,8 @@ namespace MiniFlyout.UI
             var accent = new AccentPolicy
             {
                 AccentState = 4, // ACCENT_ENABLE_ACRYLICBLURBEHIND
-                // DWM expects colors in ABGR format, not ARGB
-                GradientColor = (opacity << 24) | (ambientColor.B << 16) | (ambientColor.G << 8) | ambientColor.R
+                // DWM expects colors in ABGR format. Wrapped in unchecked to prevent silent overflows
+                GradientColor = unchecked((opacity << 24) | (ambientColor.B << 16) | (ambientColor.G << 8) | ambientColor.R)
             };
 
             int accentStructSize = Marshal.SizeOf(accent);

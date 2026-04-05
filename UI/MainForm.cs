@@ -44,8 +44,9 @@ namespace MiniFlyout.UI
 
         private void InitUI()
         {
-            Width = 340; 
-            Height = 44;
+            // 15% narrower and 5% taller
+            Width = 290; 
+            Height = 52;
             FormBorderStyle = FormBorderStyle.None;
             TopMost = true;
             ShowInTaskbar = false;
@@ -69,11 +70,14 @@ namespace MiniFlyout.UI
                 BackColor = Color.Transparent,
                 RowCount = 1,
                 ColumnCount = 3,
-                Padding = new Padding(8, 4, 8, 4)
+                // Reduced top/bottom padding to maximize vertical space for the thumbnail
+                Padding = new Padding(8, 2, 8, 2)
             };
-            mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 36f)); 
+            
+            // Increased width from 36f to 50f so the thumbnail isn't horizontally squished
+            mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 50f)); 
             mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f)); 
-            mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 96f)); 
+            mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 86f)); // Scaled down for smaller width
             mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f)); 
 
             _thumbnailBox = new PictureBox
@@ -131,9 +135,10 @@ namespace MiniFlyout.UI
             buttonLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33f));
             buttonLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
 
-            var prev = new StyledButton("\uE892") { Anchor = AnchorStyles.None, Margin = new Padding(0), Size = new Size(28, 28), Font = new Font("Segoe Fluent Icons", 11f) };
-            _playBtn = new StyledButton("\uE768") { Anchor = AnchorStyles.None, Margin = new Padding(0), Size = new Size(28, 28), Font = new Font("Segoe Fluent Icons", 11f) }; 
-            var next = new StyledButton("\uE893") { Anchor = AnchorStyles.None, Margin = new Padding(0), Size = new Size(28, 28), Font = new Font("Segoe Fluent Icons", 11f) };
+            // Scaled buttons down slightly (26x26) so they don't clip in the narrower UI
+            var prev = new StyledButton("\uE892") { Anchor = AnchorStyles.None, Margin = new Padding(0), Size = new Size(26, 26), Font = new Font("Segoe Fluent Icons", 10.5f) };
+            _playBtn = new StyledButton("\uE768") { Anchor = AnchorStyles.None, Margin = new Padding(0), Size = new Size(26, 26), Font = new Font("Segoe Fluent Icons", 10.5f) }; 
+            var next = new StyledButton("\uE893") { Anchor = AnchorStyles.None, Margin = new Padding(0), Size = new Size(26, 26), Font = new Font("Segoe Fluent Icons", 10.5f) };
 
             prev.Click += (s, e) => _mediaService.Previous();
             _playBtn.Click += (s, e) => _mediaService.PlayPause();
@@ -227,7 +232,9 @@ namespace MiniFlyout.UI
 
                             // Generate the ambient background tint
                             var ambientColor = ImageUtils.GetAmbientGlowColor(_thumbnailBox.Image);
-                            WindowEffects.EnableAmbientAcrylic(this.Handle, ambientColor, 0x55); 
+                            
+                            // Boosted opacity to 0x99 (approx 60%) so the glow is heavily visible
+                            WindowEffects.EnableAmbientAcrylic(this.Handle, ambientColor, 0x99); 
                         }
                     }
                     else

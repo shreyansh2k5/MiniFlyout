@@ -18,11 +18,11 @@ namespace MiniFlyout.UI
                 graphics.DrawImage(image, 0, 0, 1, 1);
                 var dominantColor = bitmap.GetPixel(0, 0);
 
-                // Darken the color to act as a subtle ambient glow rather than a blinding solid color.
-                // This ensures the white text on the widget remains readable.
-                int r = (int)(dominantColor.R * 0.25);
-                int g = (int)(dominantColor.G * 0.25);
-                int b = (int)(dominantColor.B * 0.25);
+                // Boost the brightness so the ambient glow is vibrant and visible like YouTube
+                // (Increased from 0.25 to 0.75 multiplier)
+                int r = Math.Min((int)(dominantColor.R * 0.75), 255);
+                int g = Math.Min((int)(dominantColor.G * 0.75), 255);
+                int b = Math.Min((int)(dominantColor.B * 0.75), 255);
 
                 return Color.FromArgb(r, g, b);
             }
