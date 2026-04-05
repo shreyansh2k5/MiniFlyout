@@ -1,40 +1,42 @@
 MiniFlyout 🎵
 
-MiniFlyout is a sleek, native-feeling media controller widget for Windows 11. Built with C# and .NET 10, it integrates seamlessly into your taskbar, providing beautiful and non-intrusive controls for your system's currently playing media (Spotify, YouTube, Windows Media Player, etc.).
+MiniFlyout is a sleek, native-feeling media controller widget for Windows 10 and 11. Built with C# and .NET 10, it integrates seamlessly into your taskbar, providing beautiful and non-intrusive controls for your system's currently playing media (Spotify, YouTube, Windows Media Player, Apple Music, etc.).
 
 ✨ Features
 
 Ambient Artwork Glow: Extracts the dominant colors from the currently playing album art and projects a beautiful, glowing acrylic blur behind the widget (similar to YouTube's ambient mode).
 
-Smart Visibility: The widget automatically hides itself to save memory and CPU when no media is playing, and instantly reappears when you start a track.
+Smart Full-Screen Detection: Intelligently detects when you are playing a game or watching a full-screen video and politely hides itself so it never blocks your view.
 
-Native Windows 11 Aesthetics: Uses the native DWM API for hardware-accelerated rounded corners and seamless drop shadows.
+Auto-Visibility: The widget automatically hides itself to save memory and CPU when no media is playing, and instantly reappears when you start a track.
 
-Taskbar Integration: Sits flush on the bottom-left of your screen, perfectly tailored to match the height and feel of the Windows 11 taskbar.
+System Tray Integration: Runs quietly in your system tray. Right-click the MiniFlyout icon to access settings or close the app.
 
-Unobtrusive: Runs as a true background overlay (WS_EX_NOACTIVATE). Clicking the media controls will never steal focus from your active game, browser, or full-screen app.
+Native Windows Aesthetics: Uses the native DWM API for hardware-accelerated rounded corners and seamless drop shadows.
 
-Clean Architecture: Codebase is separated into Core, Infrastructure, and UI layers for high maintainability.
+Unobtrusive: Runs as a true background overlay (WS_EX_NOACTIVATE). Clicking the media controls will never steal focus from your active windows.
 
 👥 How to Use (For Regular Users)
 
 Once MiniFlyout is running, there is no setup required! It works completely automatically in the background:
 
-Open your favorite media app (Spotify, Apple Music, Edge, Chrome, YouTube, etc.).
+Open your favorite media app or browser.
 
 Start playing a song or video.
 
 MiniFlyout will automatically appear on the bottom left of your taskbar, displaying the album artwork, track name, artist, and playback controls.
 
-If you close your media player, MiniFlyout will gracefully vanish until you need it again.
+If you close your media player or go full-screen in a game, MiniFlyout will gracefully vanish until you need it again.
 
-Settings & Controls
+⚙️ Settings & Controls
 
-Start with Windows: Simply right-click anywhere on the widget and check "Start with Windows".
+Look for the MiniFlyout icon in your System Tray (the bottom right corner of your screen, near the Wi-Fi icon). Right-click it to:
 
-Closing the App: Right-click anywhere on the widget and select "Exit MiniFlyout".
+Start with Windows: Check this box to make MiniFlyout launch automatically when you turn on your PC.
 
-🚀 Installation & Running (For Developers)
+Exit MiniFlyout: Safely close the application.
+
+🚀 Installation & Building (For Developers)
 
 Prerequisites
 
@@ -42,19 +44,28 @@ Windows 10 or Windows 11
 
 .NET 10 SDK
 
-Build from Source
+Build and Run locally
 
 Clone the repository:
 
 git clone [https://github.com/yourusername/media_controller.git](https://github.com/yourusername/media_controller.git)
 
 
-Build and run the project using the .NET CLI:
+Run the project:
 
 dotnet run
 
 
-(Note: If Windows SmartScreen displays a "Windows protected your PC" warning when running the compiled .exe for the first time, simply click More info -> Run anyway. This happens because the open-source executable is not signed with an Extended Validation developer certificate).
+📦 Building a Standalone Executable (To share with friends)
+
+If you want to create a single .exe file that anyone can run without needing to install .NET, run this command:
+
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+
+
+You will find your shareable MiniFlyout.exe in bin\Release\net10.0-windows10.0.19041.0\win-x64\publish\.
+
+⚠️ Antivirus / SmartScreen Notice: > Because this is a free, open-source project, the executable is not signed with an expensive Extended Validation (EV) developer certificate. When running the compiled .exe for the first time, Windows SmartScreen may show a "Windows protected your PC" warning. Simply click More info -> Run anyway.
 
 🏗️ Architecture
 
@@ -62,9 +73,9 @@ The project follows a pragmatic Clean Architecture approach to separate UI from 
 
 Core: Contains domain models (TrackInfo) and interfaces (IMediaService).
 
-Infrastructure: Handles the heavy lifting with the Windows OS. Contains P/Invoke wrappers (NativeMethods), Windows Media Transport Controls (WindowsMediaService), and registry management (AutorunManager).
+Infrastructure: Handles the heavy lifting with the Windows OS. Contains P/Invoke wrappers, Windows Media Transport Controls (WindowsMediaService), and registry management (AutorunManager).
 
-UI: Contains the WinForms visual elements, native window styling (WindowEffects), dynamic polling, image color extraction (ImageUtils), and custom Fluent buttons (MainForm, StyledButton).
+UI: Contains the WinForms visual elements, native window styling (WindowEffects), dynamic polling, image color extraction (ImageUtils), the System Tray module (TrayManager), and custom Fluent buttons (MainForm, StyledButton).
 
 🛠️ Built With
 
